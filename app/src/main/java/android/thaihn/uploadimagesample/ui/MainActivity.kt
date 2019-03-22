@@ -25,7 +25,8 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_CODE_CAMERA_OPENED = 1
         private const val REQUEST_CODE_LIBRARY_OPENED = 2
         private const val REQUEST_PERMISSION_CAMERA = 3
-        private const val REQUEST_PERMISSION_LIBRARY = 4
+        private const val REQUEST_PERMISSION_LIBRARY_READ = 4
+        private const val REQUEST_PERMISSION_LIBRARY_WRITE = 5
     }
 
     private lateinit var mainBinding: ActivityMainBinding
@@ -51,9 +52,9 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_CODE_CAMERA_OPENED -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    val bitmapPhoto = data?.extras?.get("data") as Bitmap
-                    val uri = getImageUri(bitmapPhoto)
-                    UploadImageActivity.startActivity(this, uri.toString())
+                    data?.data?.let {
+                        UploadImageActivity.startActivity(this, it.toString())
+                    }
                 }
             }
             REQUEST_CODE_LIBRARY_OPENED -> {
@@ -81,13 +82,15 @@ class MainActivity : AppCompatActivity() {
                         .show()
                 }
             }
-            REQUEST_PERMISSION_LIBRARY -> {
+            REQUEST_PERMISSION_LIBRARY_READ -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openLibrary()
                 } else {
                     Toast.makeText(applicationContext, "Permission denied", Toast.LENGTH_SHORT)
                         .show()
                 }
+            }
+            REQUEST_PERMISSION_LIBRARY_WRITE -> {
             }
         }
     }
@@ -131,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(
                     arrayOf(Manifest.permission.READ_CALENDAR),
-                    REQUEST_PERMISSION_LIBRARY
+                    REQUEST_PERMISSION_LIBRARY_READ
                 )
             } else {
                 openLibrary()
@@ -146,7 +149,7 @@ class MainActivity : AppCompatActivity() {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(
                     arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_PERMISSION_LIBRARY
+                    REQUEST_PERMISSION_LIBRARY_WRITE
                 )
             }
         }

@@ -24,6 +24,10 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+
+
 
 
 class UploadImageActivity : AppCompatActivity() {
@@ -73,12 +77,18 @@ class UploadImageActivity : AppCompatActivity() {
         val path = ImageUtil.getPathFromUri(applicationContext, realUri)
         val file = File(path)
 
+        // Log
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
+        val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
+
         val requestFile = RequestBody.create(MediaType.parse(contentResolver.getType(realUri)), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         val BASE_URL = "http://192.168.19.18:9669"
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
