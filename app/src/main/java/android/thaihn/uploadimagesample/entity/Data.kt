@@ -6,8 +6,11 @@ import com.google.gson.annotations.SerializedName
 
 data class Data(
 
-    @SerializedName("from_type")
-    val from_type: Int,
+    @SerializedName("form_type")
+    val form_type: Int,
+
+    @SerializedName("form_name")
+    val form_name: String,
 
     @SerializedName("data1")
     val data1: List<String>,
@@ -18,12 +21,15 @@ data class Data(
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
+        parcel.readString(),
         parcel.createStringArrayList(),
-        parcel.createStringArrayList()) {
+        parcel.createStringArrayList()
+    ) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(from_type)
+        parcel.writeInt(form_type)
+        parcel.writeString(form_name)
         parcel.writeStringList(data1)
         parcel.writeStringList(data2)
     }

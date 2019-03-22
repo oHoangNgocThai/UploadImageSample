@@ -40,6 +40,7 @@ class ResultActivity : AppCompatActivity() {
 
         resultBinding.tvData1Result.text = uploadResponse?.data?.data1.toString()
         resultBinding.tvData2Result.text = uploadResponse?.data?.data2.toString()
+        resultBinding.tvFormName.text = uploadResponse?.data?.form_name
     }
 
     override fun onSupportNavigateUp(): Boolean {
