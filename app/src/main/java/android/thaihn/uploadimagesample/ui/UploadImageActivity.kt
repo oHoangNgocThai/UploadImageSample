@@ -3,10 +3,15 @@ package android.thaihn.uploadimagesample.ui
 import android.content.Context
 import android.content.Intent
 import android.databinding.DataBindingUtil
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
+import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.databinding.ActivityUploadImageBinding
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
@@ -16,18 +21,15 @@ import android.view.MenuItem
 import android.widget.Toast
 import okhttp3.MediaType
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-
-
 
 
 class UploadImageActivity : AppCompatActivity() {
@@ -53,7 +55,7 @@ class UploadImageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        uploadImageBinding = DataBindingUtil.setContentView(this, android.thaihn.uploadimagesample.R.layout.activity_upload_image)
+        uploadImageBinding = DataBindingUtil.setContentView(this, R.layout.activity_upload_image)
 
         supportActionBar?.title = "Preview Image"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -61,9 +63,12 @@ class UploadImageActivity : AppCompatActivity() {
         uri = intent?.getStringExtra(FILE_URI)
 
         Log.d(TAG, "File uri $uri")
+        val path = ImageUtil.getPathFromUri(applicationContext, Uri.parse(uri))
 
-        val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, Uri.parse(uri))
-        uploadImageBinding.imgPreview.setImageBitmap(bitmap)
+        path?.let {
+            val bitmap = getBitmap(it)
+            uploadImageBinding.imgPreview.setImageBitmap(bitmap)
+        }
 
         uploadImageBinding.btnUpload.setOnClickListener {
             uri?.let {
@@ -82,7 +87,8 @@ class UploadImageActivity : AppCompatActivity() {
         interceptor.level = HttpLoggingInterceptor.Level.BODY
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
-        val requestFile = RequestBody.create(MediaType.parse(contentResolver.getType(realUri)), file)
+        val requestFile =
+            RequestBody.create(MediaType.parse(contentResolver.getType(realUri)), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         val BASE_URL = "http://192.168.19.18:9669"
@@ -98,10 +104,17 @@ class UploadImageActivity : AppCompatActivity() {
         callUpload.enqueue(object : Callback<UploadResponse> {
             override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                 t.printStackTrace()
-                Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    applicationContext,
+                    "Upload fail because ${t.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
-            override fun onResponse(call: Call<UploadResponse>, response: Response<UploadResponse>) {
+            override fun onResponse(
+                call: Call<UploadResponse>,
+                response: Response<UploadResponse>
+            ) {
                 Log.d(TAG, "onResponse: ${response.body()}")
                 response.body()?.let {
                     Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
@@ -126,4 +139,29 @@ class UploadImageActivity : AppCompatActivity() {
         return true
     }
 
+    fun getBitmap(path: String): Bitmap {
+        var bitmap = BitmapFactory.decodeFile(path)
+
+        val exif = ExifInterface(path)
+        val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
+
+        var rotation : Float = 0F
+        when (orientation) {
+            6 -> rotation = 90F
+            3 -> rotation = 180F
+            8 -> rotation = 270F
+        }
+
+        if(rotation != 0F) {
+            val matrix = Matrix()
+            matrix.postRotate(rotation)
+
+            var rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap.recycle()
+            bitmap = rotated
+            rotated = null
+        }
+
+        return bitmap
+    }
 }
