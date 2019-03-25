@@ -7,28 +7,27 @@ import com.google.gson.annotations.SerializedName
 data class Data(
 
     @SerializedName("form_type")
-    val form_type: Int,
+    val form_type: Int?,
 
     @SerializedName("form_name")
-    val form_name: String,
+    val form_name: String?,
 
     @SerializedName("data1")
-    val data1: List<String>,
+    val data1: List<String>?,
 
     @SerializedName("data2")
-    val data2: List<String>
+    val data2: List<String>?
 
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
-        parcel.readInt(),
-        parcel.readString(),
-        parcel.createStringArrayList(),
-        parcel.createStringArrayList()
-    ) {
+            parcel.readValue(Int::class.java.classLoader) as? Int,
+            parcel.readString(),
+            parcel.createStringArrayList(),
+            parcel.createStringArrayList()) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(form_type)
+        parcel.writeValue(form_type)
         parcel.writeString(form_name)
         parcel.writeStringList(data1)
         parcel.writeStringList(data2)
@@ -47,4 +46,5 @@ data class Data(
             return arrayOfNulls(size)
         }
     }
+
 }

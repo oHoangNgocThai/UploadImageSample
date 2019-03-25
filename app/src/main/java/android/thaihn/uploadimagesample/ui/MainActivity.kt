@@ -56,7 +56,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.d(TAG, "requestCode:$requestCode---resultCode:$resultCode---data:$data")
         when (requestCode) {
             REQUEST_CODE_CAMERA_OPENED -> {
                 if (resultCode == Activity.RESULT_OK) {

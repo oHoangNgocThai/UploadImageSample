@@ -24,6 +24,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -89,15 +90,15 @@ class UploadImageActivity : AppCompatActivity() {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val requestFile =
-            RequestBody.create(MediaType.parse("image/*"), file)
+                RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         val BASE_URL = "http://192.168.19.18:9669"
         val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+                .baseUrl(BASE_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
         val service = retrofit.create(UploadService::class.java)
 
@@ -106,29 +107,34 @@ class UploadImageActivity : AppCompatActivity() {
             override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                 t.printStackTrace()
                 uploadImageBinding.progress.visibility = View.GONE
-                Toast.makeText(
-                    applicationContext,
-                    "Upload fail because ${t.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
             }
 
             override fun onResponse(
-                call: Call<UploadResponse>,
-                response: Response<UploadResponse>
+                    call: Call<UploadResponse>,
+                    response: Response<UploadResponse>
             ) {
-                Log.d(TAG, "onResponse: body:${response.body()}")
+                Log.d(TAG, "onResponse: response.body:$response ---- response.errorBody=${response.errorBody()?.string()}")
                 uploadImageBinding.progress.visibility = View.GONE
-                val body = response.body()
-                if(body == null) {
-                    Toast.makeText(applicationContext, "Not receive response", Toast.LENGTH_SHORT).show()
+
+                val code = response.code()
+                if (code == 200) {
+                    response.body()?.let {
+                        Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
+                        ResultActivity.startActivity(applicationContext, it)
+                    }
                 } else {
-                    Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
-                    ResultActivity.startActivity(applicationContext, body)
+                    val errorResponse = response.errorBody()?.string()
+                    errorResponse?.let {
+                        val jsonObject = JSONObject(it)
+                        val code = jsonObject.optString("code")
+                        val message = jsonObject.optString("message")
+                        Log.d(TAG, "ErrorResponse: code:$code---message:$message")
+                        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })
-
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -145,7 +151,7 @@ class UploadImageActivity : AppCompatActivity() {
         return true
     }
 
-    fun getBitmap(path: String): Bitmap {
+    private fun getBitmap(path: String): Bitmap {
         var bitmap = BitmapFactory.decodeFile(path)
 
         val exif = ExifInterface(path)
@@ -163,7 +169,7 @@ class UploadImageActivity : AppCompatActivity() {
             matrix.postRotate(rotation)
 
             var rotated =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap.recycle()
             bitmap = rotated
             rotated = null
