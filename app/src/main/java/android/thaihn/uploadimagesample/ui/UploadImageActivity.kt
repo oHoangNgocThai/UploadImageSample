@@ -90,15 +90,15 @@ class UploadImageActivity : AppCompatActivity() {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val requestFile =
-                RequestBody.create(MediaType.parse("image/*"), file)
+            RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         val BASE_URL = "http://192.168.19.18:9669"
         val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
 
         val service = retrofit.create(UploadService::class.java)
 
@@ -111,26 +111,27 @@ class UploadImageActivity : AppCompatActivity() {
             }
 
             override fun onResponse(
-                    call: Call<UploadResponse>,
-                    response: Response<UploadResponse>
+                call: Call<UploadResponse>,
+                response: Response<UploadResponse>
             ) {
-                Log.d(TAG, "onResponse: response.body:$response ---- response.errorBody=${response.errorBody()?.string()}")
                 uploadImageBinding.progress.visibility = View.GONE
 
                 val code = response.code()
+                Log.d(TAG, "Code: $code")
                 if (code == 200) {
                     response.body()?.let {
+                        Log.d(TAG, "body: $it")
                         Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
                         ResultActivity.startActivity(applicationContext, it)
                     }
                 } else {
-                    val errorResponse = response.errorBody()?.string()
-                    errorResponse?.let {
+                    response.errorBody()?.string()?.let {
+                        Log.d(TAG, "errorBody: $it")
                         val jsonObject = JSONObject(it)
                         val code = jsonObject.optString("code")
                         val message = jsonObject.optString("message")
                         Log.d(TAG, "ErrorResponse: code:$code---message:$message")
-                        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(applicationContext,"Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -169,7 +170,7 @@ class UploadImageActivity : AppCompatActivity() {
             matrix.postRotate(rotation)
 
             var rotated =
-                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap.recycle()
             bitmap = rotated
             rotated = null
