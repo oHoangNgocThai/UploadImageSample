@@ -5,16 +5,21 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.databinding.DataBindingUtil
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore.Images
+import android.os.Environment
+import android.provider.MediaStore
+import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.databinding.ActivityMainBinding
+import android.util.Log
 import android.widget.Toast
-import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +33,8 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_PERMISSION_LIBRARY_READ = 4
         private const val REQUEST_PERMISSION_LIBRARY_WRITE = 5
     }
+
+    var currentPhotoPath: String? = null
 
     private lateinit var mainBinding: ActivityMainBinding
 
@@ -49,11 +56,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d(TAG, "requestCode:$requestCode---resultCode:$resultCode---data:$data")
         when (requestCode) {
             REQUEST_CODE_CAMERA_OPENED -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    data?.data?.let {
-                        UploadImageActivity.startActivity(this, it.toString())
+                    galleryAddPic()
+                    currentPhotoPath?.let {
+                        val file = File(it)
+                        val uri = Uri.fromFile(file)
+                        UploadImageActivity.startActivity(this, uri.toString())
                     }
                 }
             }
@@ -96,25 +107,63 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openCamera() {
-        val intent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(intent, REQUEST_CODE_CAMERA_OPENED)
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(packageManager)?.also {
+
+                val photoFile: File? = try {
+                    createImageFile()
+                } catch (ex: IOException) {
+                    null
+                }
+
+                // Continue only if the File was successfully created
+                photoFile?.also {
+                    val authority = applicationContext.packageName + ".fileprovider"
+                    val photoURI: Uri = FileProvider.getUriForFile(
+                        this,
+                        authority,
+                        it
+                    )
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                    startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA_OPENED)
+                }
+
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun createImageFile(): File? {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        ).apply {
+            // Save a file: path for use with ACTION_VIEW intents
+            currentPhotoPath = absolutePath
+        }
+    }
+
+    private fun galleryAddPic() {
+        Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).also { mediaScanIntent->
+            currentPhotoPath?.let {
+                val f = File(it)
+                mediaScanIntent.data = Uri.fromFile(f)
+                sendBroadcast(mediaScanIntent)
+            }
+        }
     }
 
     private fun openLibrary() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "image/*"
-        }
-        val pickIntent =
-            Intent(
-                Intent.ACTION_PICK,
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            ).apply {
-                type = "image/*"
+        Intent(Intent.ACTION_GET_CONTENT).also { intentChoose ->
+            intentChoose.type = "image/*"
+            intentChoose.resolveActivity(packageManager)?.also {
+                startActivityForResult(intentChoose, REQUEST_CODE_LIBRARY_OPENED)
             }
-        val chooseIntent = Intent.createChooser(intent, "Select Image").apply {
-            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(pickIntent))
         }
-        startActivityForResult(chooseIntent, REQUEST_CODE_LIBRARY_OPENED)
+
     }
 
     private fun checkPermissionCamera() {
@@ -153,12 +202,5 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
-    }
-
-    private fun getImageUri(bm: Bitmap): Uri {
-        val bytes = ByteArrayOutputStream()
-        bm.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        val path = Images.Media.insertImage(applicationContext.contentResolver, bm, "Title", null)
-        return Uri.parse(path)
     }
 }

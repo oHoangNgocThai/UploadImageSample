@@ -9,7 +9,6 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.databinding.ActivityUploadImageBinding
@@ -18,6 +17,7 @@ import android.thaihn.uploadimagesample.service.UploadService
 import android.thaihn.uploadimagesample.util.ImageUtil
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -72,6 +72,7 @@ class UploadImageActivity : AppCompatActivity() {
 
         uploadImageBinding.btnUpload.setOnClickListener {
             uri?.let {
+                uploadImageBinding.progress.visibility = View.VISIBLE
                 uploadImage(it)
             }
         }
@@ -88,7 +89,7 @@ class UploadImageActivity : AppCompatActivity() {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val requestFile =
-            RequestBody.create(MediaType.parse(contentResolver.getType(realUri)), file)
+            RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         val BASE_URL = "http://192.168.19.18:9669"
@@ -104,6 +105,7 @@ class UploadImageActivity : AppCompatActivity() {
         callUpload.enqueue(object : Callback<UploadResponse> {
             override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                 t.printStackTrace()
+                uploadImageBinding.progress.visibility = View.GONE
                 Toast.makeText(
                     applicationContext,
                     "Upload fail because ${t.message}",
@@ -115,10 +117,14 @@ class UploadImageActivity : AppCompatActivity() {
                 call: Call<UploadResponse>,
                 response: Response<UploadResponse>
             ) {
-                Log.d(TAG, "onResponse: ${response.body()}")
-                response.body()?.let {
+                Log.d(TAG, "onResponse: body:${response.body()}")
+                uploadImageBinding.progress.visibility = View.GONE
+                val body = response.body()
+                if(body == null) {
+                    Toast.makeText(applicationContext, "Not receive response", Toast.LENGTH_SHORT).show()
+                } else {
                     Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
-                    ResultActivity.startActivity(applicationContext, it)
+                    ResultActivity.startActivity(applicationContext, body)
                 }
             }
         })
@@ -145,18 +151,19 @@ class UploadImageActivity : AppCompatActivity() {
         val exif = ExifInterface(path)
         val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
 
-        var rotation : Float = 0F
+        var rotation: Float = 0F
         when (orientation) {
             6 -> rotation = 90F
             3 -> rotation = 180F
             8 -> rotation = 270F
         }
 
-        if(rotation != 0F) {
+        if (rotation != 0F) {
             val matrix = Matrix()
             matrix.postRotate(rotation)
 
-            var rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            var rotated =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap.recycle()
             bitmap = rotated
             rotated = null
