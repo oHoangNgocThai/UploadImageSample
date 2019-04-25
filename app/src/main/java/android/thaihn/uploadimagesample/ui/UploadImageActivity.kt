@@ -2,7 +2,6 @@ package android.thaihn.uploadimagesample.ui
 
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -11,14 +10,22 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
-import android.thaihn.uploadimagesample.databinding.ActivityUploadImageBinding
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
+import android.thaihn.uploadimagesample.util.FieldType
 import android.thaihn.uploadimagesample.util.ImageUtil
+import android.thaihn.uploadimagesample.util.SharedPrefs
+import android.thaihn.uploadimagesample.util.Util
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.android.synthetic.main.activity_upload_image.*
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -52,14 +59,27 @@ class UploadImageActivity : AppCompatActivity() {
 
     private var uri: String? = null
 
-    private lateinit var uploadImageBinding: ActivityUploadImageBinding
+    private var fields = arrayListOf(FieldType.TWO_REGIONS_OF_MONEY.key, FieldType.TWO_REGIONS_OF_MONTH.key, FieldType.FOUR_REGIONS_OF_BOTH.key,
+            FieldType.ALL.key)
+
+    private var mFieldSelected = arrayListOf<String>()
+
+    private var mUrls = arrayListOf<String>()
+    private var mUrlSelected = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        uploadImageBinding = DataBindingUtil.setContentView(this, R.layout.activity_upload_image)
+        setContentView(R.layout.activity_upload_image)
 
         supportActionBar?.title = "Preview Image"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        initDataUrl()
+
+        mUrls = getUrls()
+
+        initFields()
+        initBaseUrl()
 
         uri = intent?.getStringExtra(FILE_URI)
 
@@ -68,14 +88,117 @@ class UploadImageActivity : AppCompatActivity() {
 
         path?.let {
             val bitmap = getBitmap(it)
-            uploadImageBinding.imgPreview.setImageBitmap(bitmap)
+            imagePreview.setImageBitmap(bitmap)
         }
 
-        uploadImageBinding.btnUpload.setOnClickListener {
+        buttonUpload.setOnClickListener {
             uri?.let {
-                uploadImageBinding.progress.visibility = View.VISIBLE
+                progress.visibility = View.VISIBLE
                 uploadImage(it)
             }
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+            }
+            R.id.menu_add -> {
+                startActivity(Intent(this, AddUrlActivity::class.java))
+            }
+        }
+        return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_add, menu)
+        return true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mUrls = getUrls()
+        initBaseUrl()
+    }
+
+    private fun keyToValueFields(position: Int): ArrayList<String> {
+        val result = arrayListOf<String>()
+        when (fields[position]) {
+            FieldType.ALL.key -> {
+                result.add(FieldType.ALL.value)
+            }
+            FieldType.TWO_REGIONS_OF_MONTH.key -> {
+                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
+            }
+            FieldType.TWO_REGIONS_OF_MONEY.key -> {
+                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
+            }
+            FieldType.FOUR_REGIONS_OF_BOTH.key -> {
+                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
+                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
+            }
+        }
+        return result
+    }
+
+    private fun initFields() {
+        val fieldAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fields)
+        fieldAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerFields.adapter = fieldAdapter
+        spinnerFields.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                mFieldSelected = keyToValueFields(position)
+                Log.d(TAG, "Field Selected: $mFieldSelected")
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                Log.d(TAG, "Nothing selected")
+            }
+        }
+    }
+
+    private fun initBaseUrl() {
+        val urlsAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mUrls)
+        urlsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerBaseUrl.adapter = urlsAdapter
+        spinnerBaseUrl.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                mUrlSelected = mUrls[position]
+                Log.d(TAG, "Url Selected: $mUrlSelected")
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                Log.d(TAG, "Nothing selected")
+            }
+        }
+    }
+
+    private fun getUrls(): ArrayList<String> {
+        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
+        var urls = arrayListOf<String>()
+        if (listUrlSrt.isNotEmpty()) {
+            val type = object : TypeToken<ArrayList<String>>() {}.type
+
+            urls = Gson().fromJson(listUrlSrt, type)
+        }
+        return urls
+    }
+
+    private fun initDataUrl() {
+        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
+        val urls = arrayListOf<String>()
+        if (listUrlSrt.isEmpty()) {
+            // save default url
+            urls.add(Util.DEFAULT_URL)
+            SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
         }
     }
 
@@ -90,15 +213,14 @@ class UploadImageActivity : AppCompatActivity() {
         val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
         val requestFile =
-            RequestBody.create(MediaType.parse("image/*"), file)
+                RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
-        val BASE_URL = "http://192.168.19.18:9669"
         val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+                .baseUrl(mUrlSelected)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
         val service = retrofit.create(UploadService::class.java)
 
@@ -106,15 +228,15 @@ class UploadImageActivity : AppCompatActivity() {
         callUpload.enqueue(object : Callback<UploadResponse> {
             override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                 t.printStackTrace()
-                uploadImageBinding.progress.visibility = View.GONE
+                progress.visibility = View.GONE
                 Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
             }
 
             override fun onResponse(
-                call: Call<UploadResponse>,
-                response: Response<UploadResponse>
+                    call: Call<UploadResponse>,
+                    response: Response<UploadResponse>
             ) {
-                uploadImageBinding.progress.visibility = View.GONE
+                progress.visibility = View.GONE
 
                 val code = response.code()
                 Log.d(TAG, "Code: $code")
@@ -127,29 +249,21 @@ class UploadImageActivity : AppCompatActivity() {
                 } else {
                     response.errorBody()?.string()?.let {
                         Log.d(TAG, "errorBody: $it")
-                        val jsonObject = JSONObject(it)
-                        val code = jsonObject.optString("code")
-                        val message = jsonObject.optString("message")
-                        Log.d(TAG, "ErrorResponse: code:$code---message:$message")
-                        Toast.makeText(applicationContext,"Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
+                        try {
+                            val jsonObject = JSONObject(it)
+                            val code = jsonObject.optString("code")
+                            val message = jsonObject.optString("message")
+                            Log.d(TAG, "ErrorResponse: code:$code---message:$message")
+                            Toast.makeText(applicationContext, "Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
+                        } catch (ex: Exception) {
+                            ex.printStackTrace()
+                            Log.d(TAG, "Error parser response: ${ex.message}")
+                            Toast.makeText(applicationContext, "Error parser response: ${ex.message}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
         })
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
-            android.R.id.home -> {
-                onBackPressed()
-            }
-        }
-        return true
     }
 
     private fun getBitmap(path: String): Bitmap {
@@ -170,7 +284,7 @@ class UploadImageActivity : AppCompatActivity() {
             matrix.postRotate(rotation)
 
             var rotated =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             bitmap.recycle()
             bitmap = rotated
             rotated = null

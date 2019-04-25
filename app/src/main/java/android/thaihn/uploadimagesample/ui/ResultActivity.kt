@@ -2,11 +2,9 @@ package android.thaihn.uploadimagesample.ui
 
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
-import android.thaihn.uploadimagesample.databinding.ActivityResultBinding
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.view.MenuItem
 
@@ -28,19 +26,17 @@ class ResultActivity : AppCompatActivity() {
 
     private var uploadResponse: UploadResponse? = null
 
-    private lateinit var resultBinding: ActivityResultBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        resultBinding = DataBindingUtil.setContentView(this, R.layout.activity_result)
+        setContentView(R.layout.activity_result)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         uploadResponse = intent.getParcelableExtra(UPLOAD_RESPONSE)
 
-        resultBinding.tvData1Result.text = uploadResponse?.data?.data1.toString()
-        resultBinding.tvData2Result.text = uploadResponse?.data?.data2.toString()
-        resultBinding.tvFormName.text = uploadResponse?.data?.form_name
+//        resultBinding.tvData1Result.text = uploadResponse?.data?.data1.toString()
+//        resultBinding.tvData2Result.text = uploadResponse?.data?.data2.toString()
+//        resultBinding.tvFormName.text = uploadResponse?.data?.form_name
     }
 
     override fun onSupportNavigateUp(): Boolean {

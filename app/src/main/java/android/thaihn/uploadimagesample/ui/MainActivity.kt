@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,9 +12,8 @@ import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
-import android.thaihn.uploadimagesample.databinding.ActivityMainBinding
-import android.util.Log
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -34,23 +32,20 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_PERMISSION_LIBRARY_WRITE = 5
     }
 
-    var currentPhotoPath: String? = null
-
-    private lateinit var mainBinding: ActivityMainBinding
+    private var currentPhotoPath: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-
+        setContentView(R.layout.activity_main)
         actionBar?.title = "OCR APP"
 
         checkPermission()
 
-        mainBinding.btnCamera.setOnClickListener {
+        buttonCamera.setOnClickListener {
             checkPermissionCamera()
         }
 
-        mainBinding.btnLibrary.setOnClickListener {
+        buttonLibrary.setOnClickListener {
             checkPermissionLibrary()
         }
     }
@@ -78,9 +73,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -89,7 +84,7 @@ class MainActivity : AppCompatActivity() {
                     openCamera()
                 } else {
                     Toast.makeText(applicationContext, "Permission denied", Toast.LENGTH_SHORT)
-                        .show()
+                            .show()
                 }
             }
             REQUEST_PERMISSION_LIBRARY_READ -> {
@@ -97,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                     openLibrary()
                 } else {
                     Toast.makeText(applicationContext, "Permission denied", Toast.LENGTH_SHORT)
-                        .show()
+                            .show()
                 }
             }
             REQUEST_PERMISSION_LIBRARY_WRITE -> {
@@ -119,9 +114,9 @@ class MainActivity : AppCompatActivity() {
                 photoFile?.also {
                     val authority = applicationContext.packageName + ".fileprovider"
                     val photoURI: Uri = FileProvider.getUriForFile(
-                        this,
-                        authority,
-                        it
+                            this,
+                            authority,
+                            it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
                     startActivityForResult(takePictureIntent, REQUEST_CODE_CAMERA_OPENED)
@@ -136,9 +131,9 @@ class MainActivity : AppCompatActivity() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
+                "JPEG_${timeStamp}_", /* prefix */
+                ".jpg", /* suffix */
+                storageDir /* directory */
         ).apply {
             // Save a file: path for use with ACTION_VIEW intents
             currentPhotoPath = absolutePath
@@ -146,7 +141,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun galleryAddPic() {
-        Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).also { mediaScanIntent->
+        Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).also { mediaScanIntent ->
             currentPhotoPath?.let {
                 val f = File(it)
                 mediaScanIntent.data = Uri.fromFile(f)
@@ -181,8 +176,8 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(
-                    arrayOf(Manifest.permission.READ_CALENDAR),
-                    REQUEST_PERMISSION_LIBRARY_READ
+                        arrayOf(Manifest.permission.READ_CALENDAR),
+                        REQUEST_PERMISSION_LIBRARY_READ
                 )
             } else {
                 openLibrary()
@@ -196,8 +191,8 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQUEST_PERMISSION_LIBRARY_WRITE
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        REQUEST_PERMISSION_LIBRARY_WRITE
                 )
             }
         }
