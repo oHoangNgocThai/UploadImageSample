@@ -21,9 +21,4 @@ object FieldUtil {
     fun saveFields(fields: ArrayList<Field>) {
         SharedPrefs.instance.put(Util.PREF_FIELDS, Gson().toJson(fields))
     }
-
-    fun checkFieldExist(): Boolean {
-        val fieldStr = SharedPrefs.instance[Util.PREF_FIELDS, String::class.java, ""]
-        return !fieldStr.isEmpty()
-    }
 }

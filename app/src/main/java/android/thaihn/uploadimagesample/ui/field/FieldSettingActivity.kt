@@ -35,7 +35,6 @@ class FieldSettingActivity : BaseActivity(), FieldAdapter.FieldListener {
         }
 
         mFields = FieldUtil.getFields()
-        getFieldSelected()
         updateUi()
 
         buttonAdd.setOnClickListener {

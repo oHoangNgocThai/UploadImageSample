@@ -2,6 +2,8 @@ package android.thaihn.uploadimagesample.ui.url
 
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.base.common.DataBoundAdapter
+import android.thaihn.uploadimagesample.base.extension.invisible
+import android.thaihn.uploadimagesample.base.extension.visible
 import android.thaihn.uploadimagesample.entity.Url
 import android.view.LayoutInflater
 import android.view.View
@@ -25,9 +27,9 @@ class UrlAdapter(
     override fun bind(itemView: View, item: Url, position: Int) {
         itemView.textTitle.text = item.url
         if (item.isChecked) {
-            itemView.imageCheck.visibility = View.VISIBLE
+            itemView.imageCheck.visible()
         } else {
-            itemView.imageCheck.visibility = View.INVISIBLE
+            itemView.imageCheck.invisible()
         }
 
         itemView.imageDelete.setOnClickListener {

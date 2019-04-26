@@ -10,16 +10,18 @@ import android.net.Uri
 import android.os.Bundle
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.base.BaseActivity
+import android.thaihn.uploadimagesample.base.extension.gone
+import android.thaihn.uploadimagesample.base.extension.visible
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
 import android.thaihn.uploadimagesample.ui.ResultActivity
-import android.thaihn.uploadimagesample.ui.url.UrlSettingActivity
 import android.thaihn.uploadimagesample.ui.field.FieldSettingActivity
+import android.thaihn.uploadimagesample.ui.url.UrlSettingActivity
 import android.thaihn.uploadimagesample.util.FieldUtil
 import android.thaihn.uploadimagesample.util.ImageUtil
+import android.thaihn.uploadimagesample.util.UrlUtil
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_upload_image.*
 import okhttp3.MediaType
@@ -57,9 +59,7 @@ class UploadImageActivity : BaseActivity() {
 
     private var mFieldSelected = arrayListOf<String>()
 
-    private var mUrls = arrayListOf<String>()
     private var mUrlSelected = ""
-
 
     override val layoutResource: Int
         get() = R.layout.activity_upload_image
@@ -77,14 +77,23 @@ class UploadImageActivity : BaseActivity() {
             imagePreview.setImageBitmap(bitmap)
         }
 
-        // get Fields
-        initFields()
-
         updateUi()
 
         buttonUpload.setOnClickListener {
             uri?.let {
-                progress.visibility = View.VISIBLE
+
+                if (mFieldSelected.isEmpty()) {
+                    Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                if (mUrlSelected.isEmpty()) {
+                    Toast.makeText(applicationContext, "Please choose an url", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                progress.visible()
+
                 uploadImage(it)
             }
         }
@@ -114,104 +123,34 @@ class UploadImageActivity : BaseActivity() {
 
     override fun onStart() {
         super.onStart()
-        initFields()
         updateUi()
     }
 
     private fun updateUi() {
-        textContentField.text = mFieldSelected.toString()
+        getFieldSelected()
+        getUrlSelected()
 
+        textContentField.text = mFieldSelected.toString()
+        textContentUrl.text = mUrlSelected
     }
 
-    private fun initFields() {
-        if (FieldUtil.checkFieldExist()) {
-            mFieldSelected.clear()
-            val fields = FieldUtil.getFields()
-            fields.forEach {
-                if (it.isChecked) {
-                    mFieldSelected.add(it.title)
-                }
+    private fun getFieldSelected() {
+        mFieldSelected.clear()
+        val fields = FieldUtil.getFields()
+        fields.forEach {
+            if (it.isChecked) {
+                mFieldSelected.add(it.title)
             }
         }
     }
 
-//    private fun keyToValueFields(position: Int): ArrayList<String> {
-//        val result = arrayListOf<String>()
-//        when (fields[position]) {
-//            FieldType.ALL.key -> {
-//                result.add(FieldType.ALL.value)
-//            }
-//            FieldType.TWO_REGIONS_OF_MONTH.key -> {
-//                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
-//            }
-//            FieldType.TWO_REGIONS_OF_MONEY.key -> {
-//                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
-//            }
-//            FieldType.FOUR_REGIONS_OF_BOTH.key -> {
-//                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
-//                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
-//            }
-//        }
-//        return result
-//    }
-
-//    private fun initFields() {
-//        val fieldAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fields)
-//        fieldAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//        spinnerFields.adapter = fieldAdapter
-//        spinnerFields.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-//
-//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//                mFieldSelected = keyToValueFields(position)
-//                Log.d(TAG, "Field Selected: $mFieldSelected")
-//            }
-//
-//            override fun onNothingSelected(parent: AdapterView<*>?) {
-//                Log.d(TAG, "Nothing selected")
-//            }
-//        }
-//    }
-
-    private fun initBaseUrl() {
-//        val urlsAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mUrls)
-//        urlsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//        spinnerBaseUrl.adapter = urlsAdapter
-//        spinnerBaseUrl.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-//
-//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//                mUrlSelected = mUrls[position]
-//                mUrls.removeAt(position)
-//                mUrls.add(0, mUrlSelected)
-//                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(mUrls))
-//                Log.d(TAG, "Url Selected: $mUrlSelected")
-//            }
-//
-//            override fun onNothingSelected(parent: AdapterView<*>?) {
-//                Log.d(TAG, "Nothing selected")
-//            }
-//        }
-    }
-
-
-//    private fun getUrls(): ArrayList<String> {
-//        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
-//        var urls = arrayListOf<String>()
-//        if (listUrlSrt.isNotEmpty()) {
-//            val type = object : TypeToken<ArrayList<String>>() {}.type
-//
-//            urls = Gson().fromJson(listUrlSrt, type)
-//        }
-//        return urls
-//    }
-
-    private fun initDataUrl() {
-//        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
-//        val urls = arrayListOf<String>()
-//        if (listUrlSrt.isEmpty()) {
-//            // save default url
-//            urls.add(Util.DEFAULT_URL)
-//            SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
-//        }
+    private fun getUrlSelected() {
+        val urls = UrlUtil.getUrls()
+        urls.forEach {
+            if (it.isChecked) {
+                mUrlSelected = it.url
+            }
+        }
     }
 
     private fun uploadImage(uri: String) {
@@ -228,54 +167,61 @@ class UploadImageActivity : BaseActivity() {
                 RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
-        val retrofit = Retrofit.Builder()
-                .baseUrl(mUrlSelected)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+        try {
+            val retrofit = Retrofit.Builder()
+                    .baseUrl(mUrlSelected)
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
 
-        val service = retrofit.create(UploadService::class.java)
+            val service = retrofit.create(UploadService::class.java)
 
-        val callUpload: Call<UploadResponse> = service.uploadImage(body, "", mFieldSelected)
-        callUpload.enqueue(object : Callback<UploadResponse> {
-            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
-                t.printStackTrace()
-                progress.visibility = View.GONE
-                Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
-            }
+            val callUpload: Call<UploadResponse> = service.uploadImage(body, "", mFieldSelected)
+            callUpload.enqueue(object : Callback<UploadResponse> {
+                override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
+                    t.printStackTrace()
+                    progress.gone()
+                    Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
+                }
 
-            override fun onResponse(
-                    call: Call<UploadResponse>,
-                    response: Response<UploadResponse>
-            ) {
-                progress.visibility = View.GONE
+                override fun onResponse(
+                        call: Call<UploadResponse>,
+                        response: Response<UploadResponse>
+                ) {
+                    progress.gone()
 
-                val code = response.code()
-                Log.d(TAG, "Code: $code")
-                if (code == 200) {
-                    response.body()?.let {
-                        Log.d(TAG, "body: $it")
-                        Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
-                        ResultActivity.startActivity(applicationContext, it)
-                    }
-                } else {
-                    response.errorBody()?.string()?.let {
-                        Log.d(TAG, "errorBody: $it")
-                        try {
-                            val jsonObject = JSONObject(it)
-                            val code = jsonObject.optString("code")
-                            val message = jsonObject.optString("message")
-                            Log.d(TAG, "ErrorResponse: code:$code---message:$message")
-                            Toast.makeText(applicationContext, "Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
-                            Log.d(TAG, "Error parser response: ${ex.message}")
-                            Toast.makeText(applicationContext, "Error parser response: ${ex.message}", Toast.LENGTH_SHORT).show()
+                    val code = response.code()
+                    Log.d(TAG, "Code: $code")
+                    if (code == 200) {
+                        response.body()?.let {
+                            Log.d(TAG, "body: $it")
+                            Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
+                            ResultActivity.startActivity(applicationContext, it)
+                        }
+                    } else {
+                        response.errorBody()?.string()?.let {
+                            Log.d(TAG, "errorBody: $it")
+                            try {
+                                val jsonObject = JSONObject(it)
+                                val code = jsonObject.optString("code")
+                                val message = jsonObject.optString("message")
+                                Log.d(TAG, "ErrorResponse: code:$code---message:$message")
+                                Toast.makeText(applicationContext, "Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                                Log.d(TAG, "Error parser response: ${ex.message}")
+                                Toast.makeText(applicationContext, "Error parser response: ${ex.message}", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
+        } catch (ex: java.lang.Exception) {
+            progress.gone()
+            ex.printStackTrace()
+            Toast.makeText(applicationContext, "Error : ${ex.message}", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun getBitmap(path: String): Bitmap {
