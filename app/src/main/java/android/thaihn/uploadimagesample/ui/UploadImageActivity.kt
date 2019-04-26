@@ -172,6 +172,9 @@ class UploadImageActivity : AppCompatActivity() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 mUrlSelected = mUrls[position]
+                mUrls.removeAt(position)
+                mUrls.add(0, mUrlSelected)
+                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(mUrls))
                 Log.d(TAG, "Url Selected: $mUrlSelected")
             }
 
@@ -224,7 +227,7 @@ class UploadImageActivity : AppCompatActivity() {
 
         val service = retrofit.create(UploadService::class.java)
 
-        val callUpload: Call<UploadResponse> = service.uploadImage(body, "")
+        val callUpload: Call<UploadResponse> = service.uploadImage(body, "", mFieldSelected)
         callUpload.enqueue(object : Callback<UploadResponse> {
             override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                 t.printStackTrace()

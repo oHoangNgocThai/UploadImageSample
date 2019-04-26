@@ -10,7 +10,8 @@ interface UploadService {
     @Multipart
     @POST("api/ocr")
     fun uploadImage(
-        @Part file: MultipartBody.Part,
-        @Header("api-key") authorization: String
+            @Part file: MultipartBody.Part,
+            @Header("api-key") authorization: String,
+            @Part("fields") fields: ArrayList<String>
     ): Call<UploadResponse>
 }

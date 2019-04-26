@@ -7,6 +7,8 @@ import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.view.MenuItem
+import com.google.gson.Gson
+import kotlinx.android.synthetic.main.activity_result.*
 
 class ResultActivity : AppCompatActivity() {
 
@@ -34,9 +36,7 @@ class ResultActivity : AppCompatActivity() {
 
         uploadResponse = intent.getParcelableExtra(UPLOAD_RESPONSE)
 
-//        resultBinding.tvData1Result.text = uploadResponse?.data?.data1.toString()
-//        resultBinding.tvData2Result.text = uploadResponse?.data?.data2.toString()
-//        resultBinding.tvFormName.text = uploadResponse?.data?.form_name
+        textResult.text = Gson().toJson(uploadResponse)
     }
 
     override fun onSupportNavigateUp(): Boolean {

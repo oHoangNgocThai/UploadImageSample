@@ -2,34 +2,35 @@ package android.thaihn.uploadimagesample.entity
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
 class UploadResponse(
 
-    @SerializedName("message")
-    @Expose
-    val message: String,
+        @SerializedName("message")
+        val message: String,
 
-    @SerializedName("code")
-    @Expose
-    val code: Int,
+        @SerializedName("code")
+        val code: Int,
 
-    @SerializedName("data")
-    @Expose
-    val data: Data
+        @SerializedName("data")
+        val data: Data,
+
+        @SerializedName("error")
+        val error: String?
 
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readInt(),
-            parcel.readParcelable(Data::class.java.classLoader)) {
+            parcel.readParcelable(Data::class.java.classLoader),
+            parcel.readString()) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(message)
         parcel.writeInt(code)
         parcel.writeParcelable(data, flags)
+        parcel.writeString(error)
     }
 
     override fun describeContents(): Int {
