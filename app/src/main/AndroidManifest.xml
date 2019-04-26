@@ -23,7 +23,7 @@
             android:name=".ui.field.FieldSettingActivity"
             android:label="@string/title_filed_setting_activity" />
         <activity
-            android:name=".ui.UrlSettingActivity"
+            android:name=".ui.url.UrlSettingActivity"
             android:label="@string/title_url_setting_activity" />
         <activity
             android:name=".ui.SettingActivity"

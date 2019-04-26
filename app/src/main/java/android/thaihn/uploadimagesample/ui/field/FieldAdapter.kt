@@ -24,7 +24,7 @@ class FieldAdapter(
 
     override fun bind(itemView: View, item: Field, position: Int) {
 
-        itemView.textItemTitleField.text = item.title
+        itemView.textTitle.text = item.title
         itemView.checkbox.isChecked = item.isChecked
 
         itemView.imageDelete.setOnClickListener {

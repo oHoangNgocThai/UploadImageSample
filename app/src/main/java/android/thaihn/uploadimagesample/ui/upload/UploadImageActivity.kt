@@ -13,7 +13,7 @@ import android.thaihn.uploadimagesample.base.BaseActivity
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
 import android.thaihn.uploadimagesample.ui.ResultActivity
-import android.thaihn.uploadimagesample.ui.UrlSettingActivity
+import android.thaihn.uploadimagesample.ui.url.UrlSettingActivity
 import android.thaihn.uploadimagesample.ui.field.FieldSettingActivity
 import android.thaihn.uploadimagesample.util.FieldUtil
 import android.thaihn.uploadimagesample.util.ImageUtil

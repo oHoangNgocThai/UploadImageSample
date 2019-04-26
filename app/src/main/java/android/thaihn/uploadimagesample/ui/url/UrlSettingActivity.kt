@@ -1,4 +1,4 @@
-package android.thaihn.uploadimagesample.ui
+package android.thaihn.uploadimagesample.ui.url
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle

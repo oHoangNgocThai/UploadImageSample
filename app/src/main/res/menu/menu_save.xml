@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/menu_save"
-        android:icon="@drawable/ic_check_black_24dp"
+        android:icon="@drawable/ic_check_white_24dp"
         android:title="Add Base Url"
         app:showAsAction="ifRoom" />
 </menu>

@@ -7,7 +7,6 @@ import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.base.BaseActivity
 import android.thaihn.uploadimagesample.entity.Field
 import android.thaihn.uploadimagesample.util.FieldUtil
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -44,7 +43,6 @@ class FieldSettingActivity : BaseActivity(), FieldAdapter.FieldListener {
             if (textField.isNotEmpty()) {
                 mFields.add(Field(textField, false))
                 editTextField.text.clear()
-
                 updateUi()
             } else {
                 Toast.makeText(applicationContext, "Field is empty", Toast.LENGTH_SHORT).show()
