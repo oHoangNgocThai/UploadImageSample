@@ -1,4 +1,4 @@
-package android.thaihn.uploadimagesample.ui
+package android.thaihn.uploadimagesample.ui.main
 
 import android.Manifest
 import android.app.Activity
@@ -10,8 +10,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
-import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
+import android.thaihn.uploadimagesample.base.BaseActivity
+import android.thaihn.uploadimagesample.ui.upload.UploadImageActivity
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -20,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName
@@ -34,10 +35,11 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPhotoPath: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        actionBar?.title = "OCR APP"
+    override val layoutResource: Int
+        get() = R.layout.activity_main
+
+    override fun initComponent(savedInstanceState: Bundle?) {
+        supportActionBar?.title = "OCR APP"
 
         checkPermission()
 

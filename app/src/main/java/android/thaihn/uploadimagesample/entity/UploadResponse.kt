@@ -15,22 +15,22 @@ class UploadResponse(
         @SerializedName("data")
         val data: Data,
 
-        @SerializedName("error")
-        val error: String?
+        @SerializedName("errors")
+        val errors: Error
 
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readInt(),
             parcel.readParcelable(Data::class.java.classLoader),
-            parcel.readString()) {
+            parcel.readParcelable(Error::class.java.classLoader)) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(message)
         parcel.writeInt(code)
         parcel.writeParcelable(data, flags)
-        parcel.writeString(error)
+        parcel.writeParcelable(errors, flags)
     }
 
     override fun describeContents(): Int {

@@ -1,4 +1,4 @@
-package android.thaihn.uploadimagesample.ui
+package android.thaihn.uploadimagesample.ui.upload
 
 import android.content.Context
 import android.content.Intent
@@ -8,23 +8,19 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.thaihn.uploadimagesample.R
+import android.thaihn.uploadimagesample.base.BaseActivity
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
-import android.thaihn.uploadimagesample.util.FieldType
+import android.thaihn.uploadimagesample.ui.ResultActivity
+import android.thaihn.uploadimagesample.ui.UrlSettingActivity
+import android.thaihn.uploadimagesample.ui.field.FieldSettingActivity
+import android.thaihn.uploadimagesample.util.FieldUtil
 import android.thaihn.uploadimagesample.util.ImageUtil
-import android.thaihn.uploadimagesample.util.SharedPrefs
-import android.thaihn.uploadimagesample.util.Util
 import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Toast
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_upload_image.*
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -40,7 +36,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 
 
-class UploadImageActivity : AppCompatActivity() {
+class UploadImageActivity : BaseActivity() {
 
     companion object {
 
@@ -59,43 +55,46 @@ class UploadImageActivity : AppCompatActivity() {
 
     private var uri: String? = null
 
-    private var fields = arrayListOf(FieldType.TWO_REGIONS_OF_MONEY.key, FieldType.TWO_REGIONS_OF_MONTH.key, FieldType.FOUR_REGIONS_OF_BOTH.key,
-            FieldType.ALL.key)
-
     private var mFieldSelected = arrayListOf<String>()
 
     private var mUrls = arrayListOf<String>()
     private var mUrlSelected = ""
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_upload_image)
 
+    override val layoutResource: Int
+        get() = R.layout.activity_upload_image
+
+    override fun initComponent(savedInstanceState: Bundle?) {
         supportActionBar?.title = "Preview Image"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        initDataUrl()
-
-        mUrls = getUrls()
-
-        initFields()
-        initBaseUrl()
-
         uri = intent?.getStringExtra(FILE_URI)
 
+        // get Path of Image
         Log.d(TAG, "File uri $uri")
-        val path = ImageUtil.getPathFromUri(applicationContext, Uri.parse(uri))
-
-        path?.let {
+        ImageUtil.getPathFromUri(applicationContext, Uri.parse(uri))?.let {
             val bitmap = getBitmap(it)
             imagePreview.setImageBitmap(bitmap)
         }
+
+        // get Fields
+        initFields()
+
+        updateUi()
 
         buttonUpload.setOnClickListener {
             uri?.let {
                 progress.visibility = View.VISIBLE
                 uploadImage(it)
             }
+        }
+
+        imageEditUrl.setOnClickListener {
+            startActivity(Intent(this, UrlSettingActivity::class.java))
+        }
+
+        imageEditField.setOnClickListener {
+            startActivity(Intent(this, FieldSettingActivity::class.java))
         }
     }
 
@@ -109,100 +108,110 @@ class UploadImageActivity : AppCompatActivity() {
             android.R.id.home -> {
                 onBackPressed()
             }
-            R.id.menu_add -> {
-                startActivity(Intent(this, AddUrlActivity::class.java))
-            }
         }
-        return true
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_add, menu)
         return true
     }
 
     override fun onStart() {
         super.onStart()
-        mUrls = getUrls()
-        initBaseUrl()
+        initFields()
+        updateUi()
     }
 
-    private fun keyToValueFields(position: Int): ArrayList<String> {
-        val result = arrayListOf<String>()
-        when (fields[position]) {
-            FieldType.ALL.key -> {
-                result.add(FieldType.ALL.value)
-            }
-            FieldType.TWO_REGIONS_OF_MONTH.key -> {
-                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
-            }
-            FieldType.TWO_REGIONS_OF_MONEY.key -> {
-                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
-            }
-            FieldType.FOUR_REGIONS_OF_BOTH.key -> {
-                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
-                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
-            }
-        }
-        return result
+    private fun updateUi() {
+        textContentField.text = mFieldSelected.toString()
+
     }
 
     private fun initFields() {
-        val fieldAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fields)
-        fieldAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerFields.adapter = fieldAdapter
-        spinnerFields.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                mFieldSelected = keyToValueFields(position)
-                Log.d(TAG, "Field Selected: $mFieldSelected")
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                Log.d(TAG, "Nothing selected")
+        if (FieldUtil.checkFieldExist()) {
+            mFieldSelected.clear()
+            val fields = FieldUtil.getFields()
+            fields.forEach {
+                if (it.isChecked) {
+                    mFieldSelected.add(it.title)
+                }
             }
         }
     }
+
+//    private fun keyToValueFields(position: Int): ArrayList<String> {
+//        val result = arrayListOf<String>()
+//        when (fields[position]) {
+//            FieldType.ALL.key -> {
+//                result.add(FieldType.ALL.value)
+//            }
+//            FieldType.TWO_REGIONS_OF_MONTH.key -> {
+//                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
+//            }
+//            FieldType.TWO_REGIONS_OF_MONEY.key -> {
+//                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
+//            }
+//            FieldType.FOUR_REGIONS_OF_BOTH.key -> {
+//                result.add(FieldType.TWO_REGIONS_OF_MONEY.value)
+//                result.add(FieldType.TWO_REGIONS_OF_MONTH.value)
+//            }
+//        }
+//        return result
+//    }
+
+//    private fun initFields() {
+//        val fieldAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, fields)
+//        fieldAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//        spinnerFields.adapter = fieldAdapter
+//        spinnerFields.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+//
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                mFieldSelected = keyToValueFields(position)
+//                Log.d(TAG, "Field Selected: $mFieldSelected")
+//            }
+//
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//                Log.d(TAG, "Nothing selected")
+//            }
+//        }
+//    }
 
     private fun initBaseUrl() {
-        val urlsAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mUrls)
-        urlsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerBaseUrl.adapter = urlsAdapter
-        spinnerBaseUrl.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                mUrlSelected = mUrls[position]
-                mUrls.removeAt(position)
-                mUrls.add(0, mUrlSelected)
-                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(mUrls))
-                Log.d(TAG, "Url Selected: $mUrlSelected")
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                Log.d(TAG, "Nothing selected")
-            }
-        }
+//        val urlsAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, mUrls)
+//        urlsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//        spinnerBaseUrl.adapter = urlsAdapter
+//        spinnerBaseUrl.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+//
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                mUrlSelected = mUrls[position]
+//                mUrls.removeAt(position)
+//                mUrls.add(0, mUrlSelected)
+//                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(mUrls))
+//                Log.d(TAG, "Url Selected: $mUrlSelected")
+//            }
+//
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//                Log.d(TAG, "Nothing selected")
+//            }
+//        }
     }
 
-    private fun getUrls(): ArrayList<String> {
-        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
-        var urls = arrayListOf<String>()
-        if (listUrlSrt.isNotEmpty()) {
-            val type = object : TypeToken<ArrayList<String>>() {}.type
 
-            urls = Gson().fromJson(listUrlSrt, type)
-        }
-        return urls
-    }
+//    private fun getUrls(): ArrayList<String> {
+//        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
+//        var urls = arrayListOf<String>()
+//        if (listUrlSrt.isNotEmpty()) {
+//            val type = object : TypeToken<ArrayList<String>>() {}.type
+//
+//            urls = Gson().fromJson(listUrlSrt, type)
+//        }
+//        return urls
+//    }
 
     private fun initDataUrl() {
-        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
-        val urls = arrayListOf<String>()
-        if (listUrlSrt.isEmpty()) {
-            // save default url
-            urls.add(Util.DEFAULT_URL)
-            SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
-        }
+//        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
+//        val urls = arrayListOf<String>()
+//        if (listUrlSrt.isEmpty()) {
+//            // save default url
+//            urls.add(Util.DEFAULT_URL)
+//            SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
+//        }
     }
 
     private fun uploadImage(uri: String) {

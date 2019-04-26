@@ -19,10 +19,19 @@
         android:roundIcon="@mipmap/ic_app"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.AddUrlActivity"></activity>
+        <activity
+            android:name=".ui.field.FieldSettingActivity"
+            android:label="@string/title_filed_setting_activity" />
+        <activity
+            android:name=".ui.UrlSettingActivity"
+            android:label="@string/title_url_setting_activity" />
+        <activity
+            android:name=".ui.SettingActivity"
+            android:label="@string/title_activity_settings" />
+        <activity android:name=".ui.AddUrlActivity" />
         <activity android:name=".ui.ResultActivity" />
-        <activity android:name=".ui.UploadImageActivity" />
-        <activity android:name=".ui.MainActivity">
+        <activity android:name=".ui.upload.UploadImageActivity" />
+        <activity android:name=".ui.main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

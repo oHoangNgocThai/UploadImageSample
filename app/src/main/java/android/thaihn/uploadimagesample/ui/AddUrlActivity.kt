@@ -40,34 +40,34 @@ class AddUrlActivity : AppCompatActivity() {
     }
 
     private fun saveUrl() {
-        val url = editTextUrl.text.toString().trim()
-
-        if (url.isEmpty()) {
-            return
-        }
-
-        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
-        if (listUrlSrt.isNotEmpty()) {
-            val type = object : TypeToken<ArrayList<String>>() {}.type
-            val urls: ArrayList<String> = Gson().fromJson(listUrlSrt, type)
-
-            var existed = false
-            urls.forEach {
-                if (url == it) {
-                    existed = true
-                    return@forEach
-                }
-            }
-
-            if (existed) {
-                Toast.makeText(applicationContext, "Url already exist", Toast.LENGTH_SHORT).show()
-            } else {
-                urls.add(0, url)
-                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
-                Toast.makeText(applicationContext, "Save url success", Toast.LENGTH_SHORT).show()
-                clearInput()
-            }
-        }
+//        val url = editTextUrl.text.toString().trim()
+//
+//        if (url.isEmpty()) {
+//            return
+//        }
+//
+////        val listUrlSrt = SharedPrefs.instance[Util.PREF_LIST_URLS, String::class.java, ""]
+//        if (listUrlSrt.isNotEmpty()) {
+//            val type = object : TypeToken<ArrayList<String>>() {}.type
+//            val urls: ArrayList<String> = Gson().fromJson(listUrlSrt, type)
+//
+//            var existed = false
+//            urls.forEach {
+//                if (url == it) {
+//                    existed = true
+//                    return@forEach
+//                }
+//            }
+//
+//            if (existed) {
+//                Toast.makeText(applicationContext, "Url already exist", Toast.LENGTH_SHORT).show()
+//            } else {
+//                urls.add(0, url)
+//                SharedPrefs.instance.put(Util.PREF_LIST_URLS, Gson().toJson(urls))
+//                Toast.makeText(applicationContext, "Save url success", Toast.LENGTH_SHORT).show()
+//                clearInput()
+//            }
+//        }
     }
 
     private fun clearInput() {
