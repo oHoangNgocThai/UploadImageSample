@@ -1,4 +1,4 @@
-package android.thaihn.uploadimagesample.ui
+package android.thaihn.uploadimagesample.ui.result
 
 import android.content.Context
 import android.content.Intent

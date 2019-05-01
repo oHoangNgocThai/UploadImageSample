@@ -25,7 +25,7 @@
         <activity
             android:name=".ui.url.UrlSettingActivity"
             android:label="@string/title_url_setting_activity" />
-        <activity android:name=".ui.ResultActivity" />
+        <activity android:name=".ui.result.ResultActivity" />
         <activity android:name=".ui.upload.UploadImageActivity" />
         <activity android:name=".ui.main.MainActivity">
             <intent-filter>

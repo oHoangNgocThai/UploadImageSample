@@ -14,7 +14,7 @@ import android.thaihn.uploadimagesample.base.extension.gone
 import android.thaihn.uploadimagesample.base.extension.visible
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
-import android.thaihn.uploadimagesample.ui.ResultActivity
+import android.thaihn.uploadimagesample.ui.result.ResultActivity
 import android.thaihn.uploadimagesample.ui.field.FieldSettingActivity
 import android.thaihn.uploadimagesample.ui.url.UrlSettingActivity
 import android.thaihn.uploadimagesample.util.FieldUtil
