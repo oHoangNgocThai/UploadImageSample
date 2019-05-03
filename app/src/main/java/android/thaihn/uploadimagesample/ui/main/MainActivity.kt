@@ -193,6 +193,7 @@ class MainActivity : BaseActivity() {
         val mUrls = UrlUtil.getUrls()
         if (mUrls.isEmpty()) {
             mUrls.add(Url(Util.DEFAULT_URL, true))
+            UrlUtil.saveUrls(mUrls)
         }
     }
 

@@ -14,13 +14,14 @@ import android.thaihn.uploadimagesample.base.extension.gone
 import android.thaihn.uploadimagesample.base.extension.visible
 import android.thaihn.uploadimagesample.entity.UploadResponse
 import android.thaihn.uploadimagesample.service.UploadService
-import android.thaihn.uploadimagesample.ui.result.ResultActivity
 import android.thaihn.uploadimagesample.ui.field.FieldSettingActivity
-import android.thaihn.uploadimagesample.ui.url.UrlSettingActivity
+import android.thaihn.uploadimagesample.ui.result.ResultActivity
+import android.thaihn.uploadimagesample.ui.setting.SettingActivity
 import android.thaihn.uploadimagesample.util.FieldUtil
 import android.thaihn.uploadimagesample.util.ImageUtil
 import android.thaihn.uploadimagesample.util.UrlUtil
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_upload_image.*
@@ -81,14 +82,13 @@ class UploadImageActivity : BaseActivity() {
 
         buttonUpload.setOnClickListener {
             uri?.let {
-
                 if (mFieldSelected.isEmpty()) {
                     Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
                 if (mUrlSelected.isEmpty()) {
-                    Toast.makeText(applicationContext, "Please choose an url", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Please choose an url from setting", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
@@ -96,10 +96,6 @@ class UploadImageActivity : BaseActivity() {
 
                 uploadImage(it)
             }
-        }
-
-        imageEditUrl.setOnClickListener {
-            startActivity(Intent(this, UrlSettingActivity::class.java))
         }
 
         imageEditField.setOnClickListener {
@@ -117,7 +113,15 @@ class UploadImageActivity : BaseActivity() {
             android.R.id.home -> {
                 onBackPressed()
             }
+            R.id.menu_setting -> {
+                startActivity(Intent(this, SettingActivity::class.java))
+            }
         }
+        return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_setting, menu)
         return true
     }
 
@@ -131,7 +135,6 @@ class UploadImageActivity : BaseActivity() {
         getUrlSelected()
 
         textContentField.text = mFieldSelected.toString()
-        textContentUrl.text = mUrlSelected
     }
 
     private fun getFieldSelected() {

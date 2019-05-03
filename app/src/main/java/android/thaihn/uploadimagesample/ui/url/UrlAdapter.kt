@@ -15,9 +15,11 @@ class UrlAdapter(
 ) : DataBoundAdapter<Url>() {
 
     interface UrlListener {
-        fun onDeleteUrl(item: Url)
+        fun onDeleteUrl(index: Int)
 
-        fun onClickListener(position: Int, item: Url)
+        fun onClickListener(index: Int)
+
+        fun onEditUrl(index: Int)
     }
 
     override fun inflateView(parent: ViewGroup): View {
@@ -33,17 +35,26 @@ class UrlAdapter(
         }
 
         itemView.imageDelete.setOnClickListener {
-            listener.onDeleteUrl(item)
+            listener.onDeleteUrl(position)
+        }
+
+        itemView.imageEdit.setOnClickListener {
+            listener.onEditUrl(position)
         }
 
         itemView.setOnClickListener {
-            listener.onClickListener(position, item)
+            listener.onClickListener(position)
         }
     }
 
     fun updateAllData(newList: ArrayList<Url>) {
         items.clear()
         items.addAll(newList)
+        notifyDataSetChanged()
+    }
+
+    fun addData(field: Url) {
+        items.add(field)
         notifyDataSetChanged()
     }
 }
