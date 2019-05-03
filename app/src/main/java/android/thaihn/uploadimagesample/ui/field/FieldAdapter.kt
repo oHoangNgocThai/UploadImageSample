@@ -13,9 +13,11 @@ class FieldAdapter(
 ) : DataBoundAdapter<Field>() {
 
     interface FieldListener {
-        fun onDeleteField(item: Field)
+        fun onDeleteField(index: Int)
 
-        fun onSelected(item: Field, position: Int, isChecked: Boolean)
+        fun onSelected(item: Field, index: Int, isChecked: Boolean)
+
+        fun onEditField(item: Field, index: Int)
     }
 
     override fun inflateView(parent: ViewGroup): View {
@@ -28,17 +30,26 @@ class FieldAdapter(
         itemView.checkbox.isChecked = item.isChecked
 
         itemView.imageDelete.setOnClickListener {
-            listener.onDeleteField(item)
+            listener.onDeleteField(position)
         }
 
         itemView.checkbox.setOnCheckedChangeListener { buttonView, isChecked ->
             listener.onSelected(item, position, isChecked)
+        }
+
+        itemView.imageEdit.setOnClickListener {
+            listener.onEditField(item, position)
         }
     }
 
     fun updateAllData(newList: List<Field>) {
         items.clear()
         items.addAll(newList)
+        notifyDataSetChanged()
+    }
+
+    fun addData(field: Field) {
+        items.add(field)
         notifyDataSetChanged()
     }
 }

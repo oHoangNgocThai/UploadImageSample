@@ -18,7 +18,7 @@ object FieldUtil {
         return fields
     }
 
-    fun saveFields(fields: ArrayList<Field>) {
+    fun saveFields(fields: List<Field>) {
         SharedPrefs.instance.put(Util.PREF_FIELDS, Gson().toJson(fields))
     }
 }

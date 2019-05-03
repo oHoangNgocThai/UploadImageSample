@@ -12,7 +12,15 @@ import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import android.thaihn.uploadimagesample.R
 import android.thaihn.uploadimagesample.base.BaseActivity
+import android.thaihn.uploadimagesample.entity.Field
+import android.thaihn.uploadimagesample.entity.Url
+import android.thaihn.uploadimagesample.ui.setting.SettingActivity
 import android.thaihn.uploadimagesample.ui.upload.UploadImageActivity
+import android.thaihn.uploadimagesample.util.FieldUtil
+import android.thaihn.uploadimagesample.util.UrlUtil
+import android.thaihn.uploadimagesample.util.Util
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -42,6 +50,7 @@ class MainActivity : BaseActivity() {
         supportActionBar?.title = "OCR APP"
 
         checkPermission()
+        setupDefaultValue()
 
         buttonCamera.setOnClickListener {
             checkPermissionCamera()
@@ -97,6 +106,21 @@ class MainActivity : BaseActivity() {
             }
         }
     }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.menu_setting -> {
+                startActivity(Intent(this, SettingActivity::class.java))
+            }
+        }
+        return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_setting, menu)
+        return true
+    }
+
 
     private fun openCamera() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
@@ -156,6 +180,20 @@ class MainActivity : BaseActivity() {
             }
         }
 
+    }
+
+    private fun setupDefaultValue() {
+        val mFields = FieldUtil.getFields()
+        if (mFields.isEmpty()) {
+            mFields.add(Field(Util.DEFAULT_FIELD_1, true))
+            mFields.add(Field(Util.DEFAULT_FIELD_2, false))
+            FieldUtil.saveFields(mFields)
+        }
+
+        val mUrls = UrlUtil.getUrls()
+        if (mUrls.isEmpty()) {
+            mUrls.add(Url(Util.DEFAULT_URL, true))
+        }
     }
 
     private fun checkPermissionCamera() {

@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.setting.SettingActivity"
+            android:label="@string/title_setting_activity" />
+        <activity
             android:name=".ui.field.FieldSettingActivity"
             android:label="@string/title_filed_setting_activity" />
         <activity

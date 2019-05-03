@@ -5,6 +5,6 @@
     <item
         android:id="@+id/menu_setting"
         android:icon="@drawable/ic_settings_white_24dp"
-        android:title="Add Base Url"
+        android:title="Settings"
         app:showAsAction="ifRoom" />
 </menu>
