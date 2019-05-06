@@ -24,6 +24,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_upload_image.*
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -37,6 +38,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import java.util.*
 
 
 class UploadImageActivity : BaseActivity() {
@@ -82,10 +84,10 @@ class UploadImageActivity : BaseActivity() {
 
         buttonUpload.setOnClickListener {
             uri?.let {
-                if (mFieldSelected.isEmpty()) {
-                    Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
+                //                if (mFieldSelected.isEmpty()) {
+//                    Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
+//                    return@setOnClickListener
+//                }
 
                 if (mUrlSelected.isEmpty()) {
                     Toast.makeText(applicationContext, "Please choose an url from setting", Toast.LENGTH_SHORT).show()
@@ -179,7 +181,9 @@ class UploadImageActivity : BaseActivity() {
 
             val service = retrofit.create(UploadService::class.java)
 
-            val callUpload: Call<UploadResponse> = service.uploadImage(body, "", mFieldSelected)
+            val requestBodyField = RequestBody.create(MediaType.parse("text/plain"), Gson().toJson(mFieldSelected))
+
+            val callUpload: Call<UploadResponse> = service.uploadImage(body, "", requestBodyField)
             callUpload.enqueue(object : Callback<UploadResponse> {
                 override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
                     t.printStackTrace()
