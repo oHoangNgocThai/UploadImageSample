@@ -38,7 +38,6 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
-import java.util.*
 
 
 class UploadImageActivity : BaseActivity() {
@@ -84,10 +83,10 @@ class UploadImageActivity : BaseActivity() {
 
         buttonUpload.setOnClickListener {
             uri?.let {
-                //                if (mFieldSelected.isEmpty()) {
-//                    Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
-//                    return@setOnClickListener
-//                }
+                if (mFieldSelected.isEmpty()) {
+                    Toast.makeText(applicationContext, "Please choose a field", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
                 if (mUrlSelected.isEmpty()) {
                     Toast.makeText(applicationContext, "Please choose an url from setting", Toast.LENGTH_SHORT).show()
@@ -172,6 +171,8 @@ class UploadImageActivity : BaseActivity() {
                 RequestBody.create(MediaType.parse("image/*"), file)
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
+        val requestBodyField = RequestBody.create(MediaType.parse("text/plain"), Gson().toJson(mFieldSelected))
+
         try {
             val retrofit = Retrofit.Builder()
                     .baseUrl(mUrlSelected)
@@ -181,7 +182,7 @@ class UploadImageActivity : BaseActivity() {
 
             val service = retrofit.create(UploadService::class.java)
 
-            val requestBodyField = RequestBody.create(MediaType.parse("text/plain"), Gson().toJson(mFieldSelected))
+
 
             val callUpload: Call<UploadResponse> = service.uploadImage(body, "", requestBodyField)
             callUpload.enqueue(object : Callback<UploadResponse> {
