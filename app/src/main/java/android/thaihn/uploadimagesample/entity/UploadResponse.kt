@@ -7,13 +7,13 @@ import com.google.gson.annotations.SerializedName
 class UploadResponse(
 
         @SerializedName("message")
-        val message: String,
+        val message: String?,
 
         @SerializedName("code")
-        val code: Int,
+        val code: Int?,
 
         @SerializedName("data")
-        val data: Data,
+        val data: Data?,
 
         @SerializedName("errors")
         val errors: Error?
@@ -21,14 +21,14 @@ class UploadResponse(
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
-            parcel.readInt(),
+            parcel.readValue(Int::class.java.classLoader) as? Int,
             parcel.readParcelable(Data::class.java.classLoader),
             parcel.readParcelable(Error::class.java.classLoader)) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(message)
-        parcel.writeInt(code)
+        parcel.writeValue(code)
         parcel.writeParcelable(data, flags)
         parcel.writeParcelable(errors, flags)
     }

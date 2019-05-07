@@ -37,6 +37,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.io.File
 
 
@@ -178,11 +179,10 @@ class UploadImageActivity : BaseActivity() {
                     .baseUrl(mUrlSelected)
                     .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(ScalarsConverterFactory.create())
                     .build()
 
             val service = retrofit.create(UploadService::class.java)
-
-
 
             val callUpload: Call<UploadResponse> = service.uploadImage(body, "", requestBodyField)
             callUpload.enqueue(object : Callback<UploadResponse> {
