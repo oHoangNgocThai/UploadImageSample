@@ -19,4 +19,11 @@ interface UploadService {
             @Part("fields") field: RequestBody
     ): Call<UploadResponse>
 
+    @Multipart
+    @POST("api/ocr")
+    fun uploadImageWithAny(
+            @Part file: MultipartBody.Part,
+            @Header("api-key") authorization: String,
+            @Part("fields") field: RequestBody
+    ): Call<Any>
 }
