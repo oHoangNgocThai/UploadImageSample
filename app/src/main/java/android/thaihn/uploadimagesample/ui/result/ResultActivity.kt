@@ -15,16 +15,7 @@ class ResultActivity : AppCompatActivity() {
     companion object {
         private val TAG = ResultActivity::class.java.simpleName
 
-        private const val UPLOAD_RESPONSE = "upload_response"
         private const val UPLOAD_ANY = "upload_any"
-
-        fun startActivity(context: Context, response: UploadResponse) {
-            val intent = Intent(context, ResultActivity::class.java).apply {
-                putExtra(UPLOAD_RESPONSE, response)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            context.startActivity(intent)
-        }
 
         fun startActivityWithAny(context: Context, data: String) {
             val intent = Intent(context, ResultActivity::class.java).apply {
@@ -35,8 +26,6 @@ class ResultActivity : AppCompatActivity() {
         }
     }
 
-    private var uploadResponse: UploadResponse? = null
-
     private var uploadString: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,15 +34,11 @@ class ResultActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        uploadResponse = intent?.getParcelableExtra(UPLOAD_RESPONSE)
         uploadString = intent?.getStringExtra(UPLOAD_ANY)
 
-        uploadResponse?.let {
-            textResult.text = Gson().toJson(it)
-        }
-
         uploadString?.let {
-            textResult.text = it
+            jsonLayout.bindJson(it)
+            jsonLayout.expandAll()
         }
     }
 

@@ -5,13 +5,13 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/textResult"
+    <com.dandan.jsonhandleview.library.JsonViewLayout
         android:layout_width="0dp"
+        android:id="@+id/jsonLayout"
         android:layout_height="0dp"
-        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </android.support.constraint.ConstraintLayout>

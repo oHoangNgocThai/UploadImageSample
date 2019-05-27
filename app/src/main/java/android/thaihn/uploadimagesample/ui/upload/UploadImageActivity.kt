@@ -151,11 +151,14 @@ class UploadImageActivity : BaseActivity() {
 
     private fun getUrlSelected() {
         val urls = UrlUtil.getUrls()
+        var strUrl = ""
         urls.forEach {
             if (it.isChecked) {
-                mUrlSelected = it.url
+                strUrl = it.url
+                return@forEach
             }
         }
+        mUrlSelected = strUrl.replace("/api/ocr", "")
     }
 
     private fun uploadImage(uri: String) {
@@ -240,49 +243,49 @@ class UploadImageActivity : BaseActivity() {
         })
     }
 
-    private fun uploadImageWithResponse(service: UploadService, body: MultipartBody.Part, requestBodyField: RequestBody) {
-        val callUpload: Call<UploadResponse> = service.uploadImage(body, "", requestBodyField)
-        callUpload.enqueue(object : Callback<UploadResponse> {
-            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
-                t.printStackTrace()
-                progress.gone()
-                Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onResponse(
-                    call: Call<UploadResponse>,
-                    response: Response<UploadResponse>
-            ) {
-                progress.gone()
-
-                val code = response.code()
-                Log.d(TAG, "Code: $code")
-
-                if (code == 200) {
-                    response.body()?.let {
-                        Log.d(TAG, "body: $it")
-                        Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
-                        ResultActivity.startActivity(applicationContext, it)
-                    }
-                } else {
-                    response.errorBody()?.string()?.let {
-                        Log.d(TAG, "errorBody: $it")
-                        try {
-                            val jsonObject = JSONObject(it)
-                            val code = jsonObject.optString("code")
-                            val message = jsonObject.optString("message")
-                            Log.d(TAG, "ErrorResponse: code:$code---message:$message")
-                            Toast.makeText(applicationContext, "Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
-                            Log.d(TAG, "Error parser response: ${ex.message}")
-                            Toast.makeText(applicationContext, "Error parser response: ${ex.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
-        })
-    }
+//    private fun uploadImageWithResponse(service: UploadService, body: MultipartBody.Part, requestBodyField: RequestBody) {
+//        val callUpload: Call<UploadResponse> = service.uploadImage(body, "", requestBodyField)
+//        callUpload.enqueue(object : Callback<UploadResponse> {
+//            override fun onFailure(call: Call<UploadResponse>, t: Throwable) {
+//                t.printStackTrace()
+//                progress.gone()
+//                Toast.makeText(applicationContext, "Upload fail because ${t.message}", Toast.LENGTH_SHORT).show()
+//            }
+//
+//            override fun onResponse(
+//                    call: Call<UploadResponse>,
+//                    response: Response<UploadResponse>
+//            ) {
+//                progress.gone()
+//
+//                val code = response.code()
+//                Log.d(TAG, "Code: $code")
+//
+//                if (code == 200) {
+//                    response.body()?.let {
+//                        Log.d(TAG, "body: $it")
+//                        Toast.makeText(applicationContext, "Upload success", Toast.LENGTH_SHORT).show()
+//                        ResultActivity.startActivity(applicationContext, it)
+//                    }
+//                } else {
+//                    response.errorBody()?.string()?.let {
+//                        Log.d(TAG, "errorBody: $it")
+//                        try {
+//                            val jsonObject = JSONObject(it)
+//                            val code = jsonObject.optString("code")
+//                            val message = jsonObject.optString("message")
+//                            Log.d(TAG, "ErrorResponse: code:$code---message:$message")
+//                            Toast.makeText(applicationContext, "Code: $code -- Message: $message", Toast.LENGTH_SHORT).show()
+//                        } catch (ex: Exception) {
+//                            ex.printStackTrace()
+//                            Log.d(TAG, "Error parser response: ${ex.message}")
+//                            Toast.makeText(applicationContext, "Error parser response: ${ex.message}", Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
+//                }
+//            }
+//        })
+//    }
 
     private fun getBitmap(path: String): Bitmap {
         var bitmap = BitmapFactory.decodeFile(path)
